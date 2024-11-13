@@ -1,7 +1,7 @@
 using Game.Host;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UniRx;
 using UnityEngine;
 using static Game.Host.ServerEntity;
@@ -18,8 +18,7 @@ namespace Game
         private ReactiveCommand<float> _onUpdate;
 
         private ReactiveCommand<(MessageType message, string extraData)> _sendData;
-        private ReactiveCommand<Dictionary<int, SendedData>> _receiveData;
-
+        private ReactiveCommand<Dictionary<int, Dictionary<MessageType, string>>> _receiveData;
 
         private readonly Stack<IDisposable> _disposables = new ();
 
@@ -34,10 +33,10 @@ namespace Game
             _receiveData = new ();
             _disposables.Push(_receiveData);
 
-            var receivedDataDisposable = _receiveData.Subscribe(d => Debug.Log($"{string.Join(",\n", d.Select(p => $"{p.Key} | {p.Value.DataType}"))}"));
+            var receivedDataDisposable = _receiveData.Subscribe(d => Debug.Log($"{JsonConvert.SerializeObject(d, Formatting.Indented)}"));
             _disposables.Push(receivedDataDisposable);
 
-            var serverEntity = new ServerEntity(new ServerEntity.Ctx
+            var serverEntity = new ServerEntity(new Ctx
             {
                 Ip = _ip,
                 Port = _port,

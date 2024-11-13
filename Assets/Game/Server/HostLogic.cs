@@ -1,7 +1,6 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Net.NetworkInformation;
 using UniRx;
 using Unity.Collections;
 using Unity.Networking.Transport;
@@ -19,7 +18,7 @@ namespace Game.Server
             public IReactiveCommand<float> OnUpdate;
         }
 
-        private readonly Dictionary<int, SendedData> _pings = new();
+        private Dictionary<int, Dictionary<MessageType, string>> _data;
 
         private NetworkDriver _serverDriver;
         private NativeList<NetworkConnection> _connections;
@@ -98,22 +97,16 @@ namespace Game.Server
 
         private void OnServerGetData(MessageType data, NetworkConnection connection, string extraData)
         {
-            string response;
-            switch (data)
-            {
-                case MessageType.Ping:
-                    var sendedDataPing = new SendedData
-                    {
-                        DataType = data,
-                        SerializedData = "Ping",
-                    };
-                    _pings[connection.InternalId] = sendedDataPing;
-                    response = JsonConvert.SerializeObject(_pings);
-                    break;
-                default:
-                    return;
-            }
-            
+            _data ??= new();
+            if (!_data.ContainsKey(connection.InternalId))
+                _data.Add(connection.InternalId, new ());
+            _data[connection.InternalId][MessageType.LastUpdateTime] = DateTime.UtcNow.ToBinary().ToString();
+            _data[connection.InternalId][data] = extraData;
+
+            //remove old _data here...
+
+            var response = JsonConvert.SerializeObject(_data);
+
             var result = _serverDriver.BeginSend(NetworkPipeline.Null, connection, out var writerGetData);
             if (result != 0)
             {

@@ -9,13 +9,11 @@ namespace Game.Host
     {
         public enum MessageType : byte
         {
-            Ping,
-        }
+            //auto
+            LastUpdateTime,
 
-        public struct SendedData
-        {
-            public MessageType DataType;
-            public string SerializedData;
+            //manual
+            Ping,
         }
 
         public struct Ctx
@@ -26,7 +24,7 @@ namespace Game.Host
             public IReactiveCommand<float> OnUpdate;
 
             public IReactiveCommand<(MessageType message, string extraData)> SendData;
-            public IReactiveCommand<Dictionary<int, SendedData>> ReceiveData;
+            public IReactiveCommand<Dictionary<int, Dictionary<MessageType, string>>> ReceiveData;
         }
 
         private readonly Stack<IDisposable> _disposables;

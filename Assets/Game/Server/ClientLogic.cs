@@ -19,7 +19,7 @@ namespace Game.Server
             public IReactiveCommand<float> OnUpdate;
 
             public IReactiveCommand<(MessageType message, string extraData)> SendData;
-            public IReactiveCommand<Dictionary<int, SendedData>> ReceiveData;
+            public IReactiveCommand<Dictionary<int, Dictionary<MessageType, string>>> ReceiveData;
         }
 
         private NetworkDriver _driver;
@@ -59,7 +59,7 @@ namespace Game.Server
                 {
                     var rawData = stream.ReadFixedString4096();
                     var data = rawData.ToString();
-                    var receivedData = JsonConvert.DeserializeObject<Dictionary<int, SendedData>>(data);
+                    var receivedData = JsonConvert.DeserializeObject<Dictionary<int, Dictionary<MessageType, string>>>(data);
 
                     _ctx.ReceiveData.Execute(receivedData);
                 }
